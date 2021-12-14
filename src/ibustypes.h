@@ -53,6 +53,7 @@
  * @IBUS_BUTTON3_MASK: Mouse button 3 (right) is activated.
  * @IBUS_BUTTON4_MASK: Mouse button 4 (scroll up) is activated.
  * @IBUS_BUTTON5_MASK: Mouse button 5 (scroll down) is activated.
+ * @IBUS_PREFILTER_MASK: Prefilter mask indicates the event has been prefiltered by the engine.
  * @IBUS_HANDLED_MASK: Handled mask indicates the event has been handled by ibus.
  * @IBUS_FORWARD_MASK: Forward mask indicates the event has been forward from ibus.
  * @IBUS_IGNORED_MASK: It is an alias of IBUS_FORWARD_MASK.
@@ -63,7 +64,7 @@
  * @IBUS_MODIFIER_MASK: Modifier mask for the all the masks above.
  *
  * Handles key modifier such as control, shift and alt and release event.
- * Note that nits 15 - 25 are currently unused, while bit 29 is used internally.
+ * Note that bits 15 - 22 are currently unused, while bit 29 is used internally.
  */
 typedef enum
 {
@@ -82,10 +83,11 @@ typedef enum
     IBUS_BUTTON5_MASK  = 1 << 12,
 
     /* The next few modifiers are used by XKB, so we skip to the end.
-     * Bits 15 - 23 are currently unused. Bit 29 is used internally.
+     * Bits 15 - 22 are currently unused. Bit 29 is used internally.
      */
 
     /* ibus mask */
+    IBUS_PREFILTER_MASK= 1 << 23,
     IBUS_HANDLED_MASK  = 1 << 24,
     IBUS_FORWARD_MASK  = 1 << 25,
     IBUS_IGNORED_MASK  = IBUS_FORWARD_MASK,
@@ -96,7 +98,7 @@ typedef enum
 
     IBUS_RELEASE_MASK  = 1 << 30,
 
-    IBUS_MODIFIER_MASK = 0x5f001fff
+    IBUS_MODIFIER_MASK = 0x5f801fff
 } IBusModifierType;
 
 /**
