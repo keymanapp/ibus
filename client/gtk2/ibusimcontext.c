@@ -420,10 +420,11 @@ _process_key_event_done (GObject      *object,
                 gdk_event_get_device (event),
                 gdk_event_get_time (event),
                 gdk_key_event_get_keycode (event),
-                gdk_event_get_modifier_state (event) | IBUS_IGNORED_MASK,
+                (gdk_event_get_modifier_state (event) | IBUS_IGNORED_MASK) & ~IBUS_PREFILTER_MASK,
                 0);
 #else
         ((GdkEventKey *)event)->state |= IBUS_IGNORED_MASK;
+        ((GdkEventKey *)event)->state &= ~IBUS_PREFILTER_MASK;
         gdk_event_put (event);
 #endif
     }
@@ -646,8 +647,10 @@ _key_snooper_cb (GtkWidget   *widget,
     if (G_UNLIKELY (event->state & IBUS_HANDLED_MASK))
         return TRUE;
 
-    if (G_UNLIKELY (event->state & IBUS_IGNORED_MASK))
-        return FALSE;
+    if (!(event->state & IBUS_PREFILTER_MASK)) {
+        if (G_UNLIKELY(event->state & IBUS_IGNORED_MASK))
+            return FALSE;
+    }
 
     do {
         if (_fake_context != ibuscontext)
@@ -1142,7 +1145,7 @@ ibus_im_context_filter_keypress (GtkIMContext *context,
         GdkModifierType state = gdk_event_get_modifier_state (event);
         if (state & IBUS_HANDLED_MASK)
             return TRUE;
-        if (state & IBUS_IGNORED_MASK)
+        if (state & IBUS_IGNORED_MASK && !(state & IBUS_PREFILTER_MASK))
             return ibus_im_context_commit_event (ibusimcontext, event);
     }
 #else
@@ -1152,7 +1155,7 @@ ibus_im_context_filter_keypress (GtkIMContext *context,
     /* Do not call gtk_im_context_filter_keypress() because
      * gtk_im_context_simple_filter_keypress() binds Ctrl-Shift-u
      */
-    if (event->state & IBUS_IGNORED_MASK)
+    if (event->state & IBUS_IGNORED_MASK && !(event->state & IBUS_PREFILTER_MASK))
         return ibus_im_context_commit_event (ibusimcontext, event);
 
     /* XXX it is a workaround for some applications do not set client
