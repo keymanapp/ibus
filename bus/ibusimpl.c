@@ -575,10 +575,17 @@ bus_ibus_impl_init (BusIBusImpl *ibus)
     g_object_ref_sink (ibus->fake_context);
     bus_dbus_impl_register_object (BUS_DEFAULT_DBUS,
                                    (IBusService *) ibus->fake_context);
-    bus_input_context_set_capabilities (ibus->fake_context,
-                                        IBUS_CAP_PREEDIT_TEXT |
-                                        IBUS_CAP_FOCUS |
-                                        IBUS_CAP_SURROUNDING_TEXT);
+
+    guint capabilities = IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS;
+
+#ifdef ENABLE_SURROUNDING
+    capabilities |= IBUS_CAP_SURROUNDING_TEXT;
+#endif
+#ifdef ENABLE_PREFILTER
+    capabilities |= IBUS_CAP_PREFILTER;
+#endif
+
+    bus_input_context_set_capabilities(ibus->fake_context, capabilities);
     g_signal_connect (ibus->fake_context,
                       "engine-changed",
                       G_CALLBACK (_context_engine_changed_cb),

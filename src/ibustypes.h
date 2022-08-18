@@ -114,19 +114,22 @@ typedef enum
  * @IBUS_CAP_SYNC_PROCESS_KEY: Asynchronous process key events are not
  *  supported and the ibus_engine_forward_key_event() should not be
  *  used for the return value of #IBusEngine::process_key_event().
+ * @IBUS_CAP_PREFILTER: ibus is compiled with prefilter support.
  *
  * Capability flags of UI.
  */
-typedef enum {
-    IBUS_CAP_PREEDIT_TEXT       = 1 << 0,
-    IBUS_CAP_AUXILIARY_TEXT     = 1 << 1,
-    IBUS_CAP_LOOKUP_TABLE       = 1 << 2,
-    IBUS_CAP_FOCUS              = 1 << 3,
-    IBUS_CAP_PROPERTY           = 1 << 4,
-    IBUS_CAP_SURROUNDING_TEXT   = 1 << 5,
-    IBUS_CAP_OSK                = 1 << 6,
-    IBUS_CAP_SYNC_PROCESS_KEY   = 1 << 7,
+typedef enum
+{
+    IBUS_CAP_PREEDIT_TEXT = 1 << 0,
+    IBUS_CAP_AUXILIARY_TEXT = 1 << 1,
+    IBUS_CAP_LOOKUP_TABLE = 1 << 2,
+    IBUS_CAP_FOCUS = 1 << 3,
+    IBUS_CAP_PROPERTY = 1 << 4,
+    IBUS_CAP_SURROUNDING_TEXT = 1 << 5,
+    IBUS_CAP_OSK = 1 << 6,
+    IBUS_CAP_SYNC_PROCESS_KEY = 1 << 7,
     IBUS_CAP_SYNC_PROCESS_KEY_V2 = IBUS_CAP_SYNC_PROCESS_KEY,
+    IBUS_CAP_PREFILTER = 1 << 8,
 } IBusCapabilite;
 
 /**

@@ -1024,6 +1024,11 @@ ibus_im_context_init (GObject *obj)
 #else
     ibusimcontext->caps = IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS;
 #endif
+
+#ifdef ENABLE_PREFILTER
+    ibusimcontext->caps |= IBUS_CAP_PREFILTER;
+#endif
+
     if (_use_sync_mode == 1)
         ibusimcontext->caps |= IBUS_CAP_SYNC_PROCESS_KEY_V2;
 

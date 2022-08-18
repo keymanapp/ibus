@@ -593,17 +593,17 @@ _create_input_context_done (GObject      *object,
         g_signal_connect (wlim->ibuscontext, "hide-preedit-text",
                           G_CALLBACK (_context_hide_preedit_text_cb),
                           wlim);
-    
+
+        guint capabilities = IBUS_CAP_PREEDIT_TEXT | IBUS_CAP_FOCUS;
+
 #ifdef ENABLE_SURROUNDING
-        ibus_input_context_set_capabilities (wlim->ibuscontext,
-                                             IBUS_CAP_FOCUS |
-                                             IBUS_CAP_PREEDIT_TEXT |
-                                             IBUS_CAP_SURROUNDING_TEXT);
-#else
-        ibus_input_context_set_capabilities (wlim->ibuscontext,
-                                             IBUS_CAP_FOCUS |
-                                             IBUS_CAP_PREEDIT_TEXT);
+        capabilities |= IBUS_CAP_SURROUNDING_TEXT;
 #endif
+#ifdef ENABLE_PREFILTER
+        capabilities |= IBUS_CAP_PREFILTER;
+#endif
+        ibus_input_context_set_capabilities(wlim->ibuscontext,
+                                            capabilities);
 
         ibus_input_context_focus_in (wlim->ibuscontext);
     }
