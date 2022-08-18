@@ -608,6 +608,18 @@ else
     enable_surrounding_text="no (disabled, use --enable-surrounding-text to enable)"
 fi
 
+# --disable-prefilter option
+AC_ARG_ENABLE(prefilter,
+    AS_HELP_STRING([--disable-prefilter],
+        [Disable prefilter support]),
+    [enable_prefilter=$enableval],
+    [enable_prefilter=yes]
+)
+if test x"$enable_prefilter" = x"yes"; then
+    AC_DEFINE(ENABLE_PREFILTER, TRUE, [Enable prefilter support])
+    enable_prefilter="yes (enabled, use --disable-prefilter to disable)"
+fi
+
 # --disable-ui
 AC_ARG_ENABLE(ui,
     AS_HELP_STRING([--disable-ui],
@@ -886,6 +898,7 @@ Build options:
   No snooper regexes            "$NO_SNOOPER_APPS"
   Panel icon                    "$IBUS_ICON_KEYBOARD"
   Enable surrounding-text       $enable_surrounding_text
+  Enable prefilter              $enable_prefilter
   Enable libnotify              $enable_libnotify
   Enable Emoji dict             $enable_emoji_dict
   Unicode Emoji directory       $UNICODE_EMOJI_DIR
