@@ -70,6 +70,7 @@ struct _IBusIMContext {
 #endif
 
     IBusInputContext *ibuscontext;
+    IBusInputContext *ibuscontext_needs_surrounding;
 
     /* preedit status */
     gchar           *preedit_string;
@@ -568,6 +569,7 @@ _process_key_event (IBusInputContext *context,
 static void
 _request_surrounding_text (IBusIMContext *context)
 {
+    static gboolean warned = FALSE;
     if (context &&
         (context->caps & IBUS_CAP_SURROUNDING_TEXT) != 0 &&
         context->ibuscontext != NULL &&
@@ -577,16 +579,18 @@ _request_surrounding_text (IBusIMContext *context)
         g_signal_emit (context, _signal_retrieve_surrounding_id, 0,
                        &return_value);
         if (!return_value) {
-            if (strcmp(g_get_prgname(), "firefox")) {
+            /* Engines can disable the surrounding text feature with
+             * the updated capabilities.
+             */
+            if (context->caps & IBUS_CAP_SURROUNDING_TEXT) {
                 context->caps &= ~IBUS_CAP_SURROUNDING_TEXT;
-                ibus_input_context_set_capabilities(context->ibuscontext, context->caps);
-            } else {
-                /* #2054 firefox::IMContextWrapper::GetCurrentParagraph() could
-                * fail with the first typing on firefox but it succeeds with
-                * the second typing, so don't disable surrounding text.
-                */
-                g_warning("%s has no capability of surrounding-text feature",
-                        g_get_prgname());
+                ibus_input_context_set_capabilities (context->ibuscontext,
+                                                     context->caps);
+            }
+            if (!warned) {
+                g_warning ("%s has no capability of surrounding-text feature",
+                           g_get_prgname ());
+                warned = TRUE;
             }
         }
     }
@@ -985,6 +989,7 @@ ibus_im_context_init (GObject *obj)
     ibusimcontext->cursor_area.height = 0;
 
     ibusimcontext->ibuscontext = NULL;
+    ibusimcontext->ibuscontext_needs_surrounding = NULL;
     ibusimcontext->has_focus = FALSE;
     ibusimcontext->time = GDK_CURRENT_TIME;
 #ifdef ENABLE_SURROUNDING
@@ -2189,6 +2194,18 @@ _ibus_context_hide_preedit_text_cb (IBusInputContext *ibuscontext,
 }
 
 static void
+_ibus_context_require_surrounding_text_cb (IBusInputContext *ibuscontext,
+                                           IBusIMContext    *ibusimcontext)
+{
+    IDEBUG ("%s", __FUNCTION__);
+    g_assert (ibusimcontext->ibuscontext == ibuscontext);
+    if (ibusimcontext->ibuscontext_needs_surrounding == ibuscontext) {
+        _request_surrounding_text (ibusimcontext);
+        ibusimcontext->ibuscontext_needs_surrounding = NULL;
+    }
+}
+
+static void
 _ibus_context_destroy_cb (IBusInputContext *ibuscontext,
                           IBusIMContext    *ibusimcontext)
 {
@@ -2254,6 +2271,11 @@ _create_input_context_done (IBusBus       *bus,
                           "hide-preedit-text",
                           G_CALLBACK (_ibus_context_hide_preedit_text_cb),
                           ibusimcontext);
+        g_signal_connect (
+                ibusimcontext->ibuscontext,
+                "require-surrounding-text",
+                G_CALLBACK (_ibus_context_require_surrounding_text_cb),
+                ibusimcontext);
         g_signal_connect (ibusimcontext->ibuscontext, "destroy",
                           G_CALLBACK (_ibus_context_destroy_cb),
                           ibusimcontext);
@@ -2270,6 +2292,12 @@ _create_input_context_done (IBusBus       *bus,
 
             ibus_input_context_focus_in (ibusimcontext->ibuscontext);
             _set_cursor_location_internal (ibusimcontext);
+            if (ibus_input_context_needs_surrounding_text (
+                        ibusimcontext->ibuscontext)) {
+                _request_surrounding_text (ibusimcontext);
+            } else {
+                ibusimcontext->ibuscontext_needs_surrounding = ibusimcontext->ibuscontext;
+            }
         }
 
         if (!g_queue_is_empty (ibusimcontext->events_queue)) {
